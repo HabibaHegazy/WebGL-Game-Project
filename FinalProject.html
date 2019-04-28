@@ -1,0 +1,483 @@
+<html lang="en">
+	<head>
+		<title>three.js webgl - geometry - cube</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				margin: 0px;
+				overflow: hidden;
+			}
+			.swal2-modal {
+  			min-height: 450px;
+  			min-width: 450px;
+  			font-size: 16px !important;
+			}
+
+		</style>
+
+	</head>
+	<body>
+
+		<script src="build/three.js"></script>
+		<script src="sweetalert2.all.min.js"></script>
+		<script src ="js/controls/OrbitControls.js"></script>
+		<!-- <script src="js/controls/DragControls.js"></script>
+		<script src="js/controls/TrackballControls.js"></script> -->
+
+		<!-- <script src="js/THREEx.KeyboardState.js"></script> -->
+
+
+
+		<script>
+
+		// TODO: press 1 to open move camera and 2 to close it
+		// TODO: collision with all walls
+		// TODO: make limit for movment so he can't move from outside
+		// TODO: win condotion
+
+			var camera, scene, renderer, controls, ball, winbox;
+			var HitUp = false, HitDown = false, HitRight = false, HitLeft = false;
+
+			init();
+			animate();
+
+			function init() {
+				var texture=new THREE.TextureLoader().load('Wood.jpg')
+				scene = new THREE.Scene();
+				camera = new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,1,5000);
+
+				camera.position.x = 0;
+				camera.position.z = 400;
+				camera.position.y = 1100;
+
+				var extrudeSettingsNorth = { depth: -750, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+				var extrudeSettingsNorthSmall = { depth: -450, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+				var extrudeSettingsNorthTallest = { depth: -1960, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+				var extrudeSettingsNorthBarrier = { depth: -300, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+
+				var extrudeSettingsEast = { depth: -80, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+
+				var toNorthWall = new THREE.Shape();
+				toNorthWall.moveTo( 0,0 );
+				toNorthWall.lineTo( 0, 100 );
+				toNorthWall.lineTo( 80, 100 );
+				toNorthWall.lineTo( 80, 0 );
+				toNorthWall.lineTo( 0, 0 );
+
+				var toEasthWall = new THREE.Shape();
+				toEasthWall.moveTo( -900,0 );
+				toEasthWall.lineTo( -900, 100 );
+				toEasthWall.lineTo( 600, 100 );
+				toEasthWall.lineTo( 600, 0 );
+				toEasthWall.lineTo( -900, 0 );
+
+				var toEasthWallSmall = new THREE.Shape();
+				toEasthWallSmall.moveTo( -900,0 );
+				toEasthWallSmall.lineTo( -900, 100 );
+				toEasthWallSmall.lineTo( -300, 100 );
+				toEasthWallSmall.lineTo( -300, 0 );
+				toEasthWallSmall.lineTo( -900, 0 );
+
+				var toEasthWallMedium = new THREE.Shape();
+				toEasthWallMedium.moveTo( -900,0 );
+				toEasthWallMedium.lineTo( -900, 100 );
+				toEasthWallMedium.lineTo( 220, 100 );
+				toEasthWallMedium.lineTo( 220, 0 );
+				toEasthWallMedium.lineTo( -900, 0 );
+
+				var toEasthBarrier = new THREE.Shape();
+				toEasthBarrier.moveTo( -300,0 );
+				toEasthBarrier.lineTo( -300, 100 );
+				toEasthBarrier.lineTo( 0, 100 );
+				toEasthBarrier.lineTo( 0, 0 );
+				toEasthBarrier.lineTo( -300, 0 );
+
+				var NorthWallg = new THREE.ExtrudeBufferGeometry(toNorthWall, extrudeSettingsNorth);
+				var one = new THREE.Mesh(NorthWallg, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+
+				var two = new THREE.Mesh(NorthWallg, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				two.position.z = -1130;
+
+				var EastWallg = new THREE.ExtrudeBufferGeometry(toEasthWall, extrudeSettingsEast);
+				var four = new THREE.Mesh(EastWallg, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				four.position.z = -750;
+
+				var three = new THREE.Mesh(EastWallg, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				three.position.z = -1050;
+				var NorthWallgSmall = new THREE.ExtrudeBufferGeometry(toNorthWall, extrudeSettingsNorthSmall);
+				var nine = new THREE.Mesh(NorthWallgSmall, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				nine.position.x = -380;
+
+				var EastWallgSamall = new THREE.ExtrudeBufferGeometry(toEasthWallSmall, extrudeSettingsEast);
+				var eight = new THREE.Mesh(EastWallgSamall, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				eight.position.z = -450;
+
+				var ten = new THREE.Mesh(NorthWallgSmall, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				ten.position.x = -900;
+				ten.position.z = -1050;
+
+				var eleven = new THREE.Mesh(EastWallgSamall, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				eleven.position.z = -1500;
+
+				var five = new THREE.Mesh(EastWallg, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				five.position.x = -520;
+				five.position.z = -1880;
+
+				var TallestNorthWallg = new THREE.ExtrudeBufferGeometry(toNorthWall, extrudeSettingsNorthTallest);
+				var six = new THREE.Mesh(TallestNorthWallg, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				six.position.x = -1500
+
+				var MediumEastWallg = new THREE.ExtrudeBufferGeometry(toEasthWallMedium, extrudeSettingsEast);
+				var seven = new THREE.Mesh(MediumEastWallg, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				seven.position.x = -520
+
+				var NorthBarrierg = new THREE.ExtrudeBufferGeometry(toNorthWall, extrudeSettingsNorthBarrier);
+				var NorthBarrier = new THREE.Mesh(NorthBarrierg, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				NorthBarrier.position.x = 520;
+				NorthBarrier.position.z = -800;
+
+				var EastBarrierg = new THREE.ExtrudeBufferGeometry(toEasthBarrier, extrudeSettingsEast);
+				var EastBarrier = new THREE.Mesh(EastBarrierg, new THREE.MeshBasicMaterial( { color: 0x12345} ));
+				EastBarrier.position.z = 0;
+
+				var ballg = new THREE.SphereBufferGeometry( 50, 32, 32 );
+				ball = new THREE.Mesh(ballg, new THREE.MeshBasicMaterial( { color: 0x19db1b45} ));
+				ball.position.x = -130;
+				ball.position.z = -140;
+				ball.position.y = 50;
+
+				var Wing = new THREE.BoxBufferGeometry( 70, 70, 70 );
+				winbox = new THREE.Mesh(Wing, new THREE.MeshBasicMaterial( { color: 0x0bdb13} ));
+				winbox.position.x = 400;
+				winbox.position.z = -930;
+				winbox.position.y = 20;
+
+				 var planeg = new THREE.BoxBufferGeometry(2150,0,2000);
+				 plane = new THREE.Mesh( planeg ,new THREE.MeshBasicMaterial( {map:texture} ) );
+				 
+				plane.position.y = -10;
+				plane.position.z = -980;
+				plane.position.x = -450;
+
+				var light = new THREE.AmbientLight( 0x404040, 5 );
+
+				 scene.add(plane);
+				scene.add(ball);
+				scene.add(winbox);
+
+				// Walls
+				scene.add(one);
+				scene.add(two);
+				scene.add(three);
+				scene.add(four);
+				scene.add(five);
+				scene.add(six);
+				scene.add(seven);
+				scene.add(eight);
+				scene.add(nine);
+				scene.add(ten);
+				scene.add(eleven);
+
+				scene.add(NorthBarrier);
+				scene.add(EastBarrier);
+
+				scene.add(light);
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio(window.devicePixelRatio);
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				scene.background = new THREE.Color( 0xffffff );
+				document.body.appendChild(renderer.domElement);
+
+				controls = new THREE.OrbitControls(camera);
+			}
+
+
+			function animate() {
+
+				requestAnimationFrame(animate);
+				renderer.render(scene,camera);
+				controls.update();
+				DetectCollision();
+				Won();
+
+				document.addEventListener('keydown',onDocumentKeyDown,false);
+			}
+
+			function onDocumentKeyDown(event){
+
+				var moveDistance = 20;
+				event = event || window.event;
+				var keycode = event.keyCode;
+
+				switch(keycode){
+					case 37 : //left arrow
+					if (!HitLeft) {
+						ball.position.x -= moveDistance;
+					}else {
+						controls.enabled = false;
+					}
+					break;
+					case 38 : // up arrow
+					if (!HitUp) {
+						ball.position.z -= moveDistance;
+					}
+					else {
+						controls.enabled = false;
+					}
+					break;
+					case 39 : // right arrow
+					if (!HitRight) {
+						ball.position.x += moveDistance;
+					}else {
+						controls.enabled = false;
+					}
+					break;
+					case 40 : //down arrow
+					if (!HitDown) {
+						ball.position.z += moveDistance;
+					}else {
+						controls.enabled = false;
+					}
+					break;
+				}
+				 document.addEventListener('keyup',onDocumentKeyUp,false);
+			}
+
+			function onDocumentKeyUp(event){
+				document.removeEventListener('keydown',onDocumentKeyDown,false);
+				controls.enabled = true;
+				HitUp = false;
+				HitDown = false;
+				HitRight = false;
+				HitLeft = false;
+			}
+
+			function DetectCollision(){
+
+				var x = ball.position.x;
+				var z = ball.position.z;
+
+				// console.log(x+","+z);
+
+				// one
+				if ( (x == -50) && (z <= 0) && (z >= -700) ) {
+					HitRight = true;
+				}
+
+				// two
+				if ( (x == -50) && (z <= -1180) && (z >= -1840) ) {
+					HitRight = true;
+				}
+
+				// three
+				if ( (z == -1180) && (x <= -50) && (x >= -770) ) {
+					HitDown = true;
+				}
+
+				// threeDown
+				if ( (z == -1000) && (x >= -930) && (x <= 630) ) {
+					HitUp = true;
+				}
+
+				// four
+				if ( (z == -700) && (x <= -50) && (x >= -930) ) {
+					HitUp = true;
+				}
+
+				// fourLeft
+				if ( (x == -950) && (z <= -720) && (z >= -860) ) {
+					HitRight = true;
+				}
+
+				// fourUP
+				if ( (z == -880) && (x >= -930) && (x <= 630) ) {
+					HitDown = true;
+				}
+
+				// five
+				if ( (z == -1840) && (x <= -50) && (x >= -1370) ) {
+					HitUp = true;
+				}
+
+				// six
+				if ( (x == -1370) && (z <= -120) && (z >= -1840) ) {
+					HitLeft = true;
+				}
+
+				// seven
+				if ( (z == -120) && (x <= -430) && (x >= -1370) ) {
+					HitDown = true;
+				}
+
+				// eight
+				if ( (z == -580) && (x <= -270) && (x >= -930) ) {
+					HitDown = true;
+				}
+
+				// eightLeft
+				if ( (x == -950) && (z <= -420) && (z >= -560) ) {
+					HitRight = true;
+				}
+
+				// eightUP
+				if ( (z == -400) && (x <= -430) && (x >= -930) ) {
+					HitUp = true;
+				}
+
+				// nine
+				if ( (x == -250) && (z <= 0) && (z >= -560) ) {
+					HitLeft = true;
+				}
+
+				// nineLeft
+				if ( (x == -430) && (z <= -120) && (z >= -400) ) {
+					HitRight = true;
+				}
+
+				// ten
+				if ( (x == -770) && (z <= -1180) && (z >= -1460) ) {
+					HitLeft = true;
+				}
+
+				// tenLeft
+				if ( (x == -950) && (z <= -1020) && (z >= -1600) ) {
+					HitRight = true;
+				}
+
+				// eleven
+				if ( (z == -1460) && (x <= -270) && (x >= -770) ) {
+					HitUp = true;
+				}
+
+				// elevenRight
+				if ( (x == -250) && (z <= -1480) && (z >= -1600) ) {
+					HitLeft = true;
+				}
+
+				// elevenUp
+				if ( (z == -1620) && (x <= -270) && (x >= -930) ) {
+					HitDown = true;
+				}
+
+				// EastBarrier
+				if ( (z == -120) && (x <= -50) && (x >= -250) ) {
+					HitDown = true;
+				}
+
+				// NorthBarrier
+				if ( (x == 470) && (z <= -880) && (z >= -1000) ) {
+					HitRight = true;
+				}
+
+				// var threedistance = HorizontalWallm[0].position.distanceToSquared(ball.position);
+				// var fourdistance = HorizontalWallm[1].position.distanceToSquared(ball.position);
+				//
+				// if (threedistance > 150000 && threedistance < 773800) {
+				// 	console.log(threedistance);
+				// 	HitUp = true;
+				// }
+				// else {
+				// 	HitUp = false;
+				// }
+
+
+				// if (fourdistance > 1000 && fourdistance < 773800) {
+				// 	console.log(fourdistance);
+				// 	HitUp = true;
+				// }else {
+				// 	HitUp = false;
+				// }
+
+
+				// for (var i = 0; i < HorizontalWallm.length; i++) {
+				// 	if (HorizontalWallm[i].position.distanceToSquared(ball.position) > 200) {
+				//
+				// 	}
+				// }
+			}
+
+			function Won()
+			{
+
+				// console.log(ball.position.distanceToSquared(winbox.position));
+				if (ball.position.distanceToSquared(winbox.position) < 5000) {
+					Swal({
+  							type: 'success',
+  							title: 'You Won the Game',
+  							showConfirmButton: false,
+  							// timer: 1500
+							})
+				}
+			}
+
+
+
+
+			// var dragControls;
+			// var objects = [];
+
+			// document.addEventListener('keydown',onDocumentKeyDown,false);
+			// function onDocumentKeyDown(event){
+			// 	var delta = 200;
+			// 	event = event || window.event;
+			// 	var keycode = event.keyCode;
+			// 	switch(keycode){
+			// 		case 37 : //left arrow
+			// 		camera.position.x = camera.position.x - delta;
+			// 		break;
+			// 		case 38 : // up arrow
+			// 		camera.position.z = camera.position.z - delta;
+			// 		break;
+			// 		case 39 : // right arrow
+			// 		camera.position.x = camera.position.x + delta;
+			// 		break;
+			// 		case 40 : //down arrow
+			// 		camera.position.z = camera.position.z + delta;
+			// 		break;
+			// 	}
+			// 	document.addEventListener('keyup',onDocumentKeyUp,false);
+			// }
+			// function onDocumentKeyUp(event){
+			// 	document.removeEventListener('keydown',onDocumentKeyDown,false);
+			// }
+
+			// controls = new THREE.TrackballControls( camera );
+			// controls.rotateSpeed = 1.0;
+			// controls.zoomSpeed = 1.2;
+			// controls.panSpeed = 0.8;
+			// controls.noZoom = false;
+			// controls.noPan = false;
+			// controls.staticMoving = true;
+			// controls.dynamicDampingFactor = 0.3;
+			//
+			//
+			// dragControls = new THREE.DragControls( objects, camera, renderer.domElement );
+			// dragControls.addEventListener( 'dragstart', function () {
+			// 	controls.enabled = false;
+			// } );
+			// dragControls.addEventListener( 'dragend', function () {
+			// 	controls.enabled = true;
+			// } );
+
+			// console.log(randommesh.position.distanceToSquared(randommesh1.position));
+			// if(randommesh.position.distanceToSquared(randommesh1.position) < 200){
+			// 	console.log(0);
+			// 	dragControls.deactivate();
+			//
+			// }
+			// else if (randommesh.position.distanceToSquared(randommesh1.position) >= 200) {
+			// 	// console.log(objects);
+			// 	dragControls.activate();
+			// }
+
+		</script>
+
+	</body>
+
+
+
+
+
+</html>
